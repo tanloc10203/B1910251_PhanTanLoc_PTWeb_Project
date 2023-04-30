@@ -60,6 +60,7 @@ const handleShowChildren = (category) => {
     ...filters.value,
     page: 1,
     where: "parent_id," + category._id,
+    isCategory: true,
   });
 };
 

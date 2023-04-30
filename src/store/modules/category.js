@@ -54,7 +54,14 @@ const actions = {
       const response = await categoryApi.getAll(filters);
 
       if (response && response.elements) {
-        commit("fetchAllSuccess", response);
+        if (
+          (filters.where && filters.where?.search(/parent_id/) === -1) ||
+          filters.isCategory
+        ) {
+          commit("fetchAllSuccess", response);
+        } else {
+          commit("fetchAllSubSuccess", response);
+        }
       }
     } catch (error) {
       if (!error.response) {

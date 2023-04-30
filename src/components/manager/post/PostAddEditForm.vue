@@ -110,6 +110,21 @@ export default defineComponent({
       }
     );
 
+    const onChangeSelect = (value) => {
+      if (!value) {
+        store.dispatch("category/changeSubCategory", []);
+        return;
+      }
+
+      categorySubId.value = "";
+
+      store.dispatch("category/fetchAllCategory", {
+        page: 1,
+        limit: 100,
+        where: `parent_id,${value}`,
+      });
+    };
+
     const user = computed(() => store.state["auth"].user);
 
     const categories = computed(() => [
@@ -117,10 +132,12 @@ export default defineComponent({
       ...store.state["category"].categories,
     ]);
 
-    const categorySub = computed(() => [
-      { _id: "", name: "Vui lòng chọn danh mục con" },
-      ...store.state["category"].categorySub,
-    ]);
+    const categorySub = computed(() => {
+      return [
+        { _id: "", name: "Vui lòng chọn danh mục con" },
+        ...store.state.category.categorySub,
+      ];
+    });
 
     const isExistCategorySub = computed(() => categorySub.value.length > 1);
 
@@ -191,21 +208,6 @@ export default defineComponent({
 
     const onChangeEditor = (value) => {
       editorData.value = value;
-    };
-
-    const onChangeSelect = (value) => {
-      if (!value) {
-        store.dispatch("category/changeSubCategory", []);
-        return;
-      }
-
-      categorySubId.value = "";
-
-      store.dispatch("category/fetchAllCategory", {
-        page: 1,
-        limit: 100,
-        where: `parent_id,${value}`,
-      });
     };
 
     const createImage = (file) => {

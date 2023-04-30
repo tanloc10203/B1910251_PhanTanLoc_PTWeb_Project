@@ -12,8 +12,10 @@
     "@mdi/font": "^7.1.96",
     "axios": "^1.2.3",
     "core-js": "^3.8.3",
+    "js-cookie": "^3.0.5",
     "moment": "^2.29.4",
     "slugify": "^1.6.5",
+    "socket.io-client": "^4.6.1",
     "vee-validate": "^4.7.3",
     "vue": "^3.2.13",
     "vue-observe-visibility": "^1.0.0",
@@ -22,6 +24,7 @@
     "vuex": "^4.0.0"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.3",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",
     "@vue/cli-plugin-vuex": "~5.0.0",

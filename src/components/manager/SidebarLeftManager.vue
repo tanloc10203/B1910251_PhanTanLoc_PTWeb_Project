@@ -18,7 +18,7 @@ export default defineComponent({
     );
 
     const linkPrivate = [
-      ["mdi-inbox-arrow-down", "Dashboard", "/manager/dashboard"],
+      ["mdi-inbox-arrow-down", "Người dùng", "/manager/dashboard"],
       ["mdi-send", "Quản lý danh mục", "/manager/category"],
       ["mdi-send", "Quản lý bài viết", "/manager/post"],
     ];

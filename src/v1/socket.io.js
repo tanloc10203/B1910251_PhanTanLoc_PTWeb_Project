@@ -1,0 +1,36 @@
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+
+const { wrap, sessionMiddleware } = require("./utils/options");
+const SocketMiddleware = require("./middlewares/socket.middleware");
+const SocketService = require("./services/socket.service");
+
+const initialSocketIo = (app) => {
+  const httpServer = createServer(app);
+
+  const io = new Server(httpServer, {
+    cors: {
+      origin: process.env.URL_CLIENT,
+      credentials: true,
+    },
+  });
+
+  io.use(wrap(sessionMiddleware));
+  io.use(SocketMiddleware.auth);
+
+  io.on("connect", (socket) => {
+    SocketService.initializeUser(socket);
+
+    socket.emit("test", {
+      text: "hello",
+    });
+
+    socket.on("disconnecting", (reason) => {});
+  });
+
+  return httpServer;
+};
+
+module.exports = {
+  initialSocketIo,
+};

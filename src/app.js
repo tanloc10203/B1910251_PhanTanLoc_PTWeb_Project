@@ -7,9 +7,14 @@ const errorHandleMiddleware = require("./v1/middlewares/error_handle_middleware"
 const initialRouter = require("./v1/routes");
 const compression = require("compression");
 const cookieParser = require("cookie-parser");
-const { OPTION_CORS, optionsCompression } = require("./v1/utils/options");
+const {
+  OPTION_CORS,
+  optionsCompression,
+  sessionMiddleware,
+} = require("./v1/utils/options");
 const multer = require("multer");
 const { storage } = require("./v1/utils/functions");
+const { initialSocketIo } = require("./v1/socket.io");
 const upload = multer({ storage: storage });
 
 // init db mongo
@@ -17,10 +22,11 @@ require("./v1/databases/init.mongodb");
 
 app.use(express.static(__dirname + "/assets/upload"));
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-app.use(morgan("combined"));
+// app.use(morgan("dev"));
 app.use(cors(OPTION_CORS));
 app.use(express.json());
 app.use(compression(optionsCompression(compression)));
+app.use(sessionMiddleware);
 app.use(cookieParser());
 app.use(
   express.urlencoded({
@@ -48,4 +54,6 @@ initialRouter(app);
 // * error handle middleware
 errorHandleMiddleware(app);
 
-module.exports = app;
+const httpServer = initialSocketIo(app);
+
+module.exports = httpServer;

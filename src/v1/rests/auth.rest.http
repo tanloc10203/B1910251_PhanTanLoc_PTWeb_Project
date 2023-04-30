@@ -5,7 +5,7 @@ POST {{url}}/sign-up
 Content-Type: application/json
 
 {
-  "email": "ginga550505@gmail.com",
+  "email": "ginga55050sdfsfdhjksfjdkskdfsdfs5@gmail.com",
   "password": "sdfkslfds"
 }
 

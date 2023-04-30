@@ -8,6 +8,7 @@ const {
   handleHtmlLang,
   handleHtmlLangEmailForgotPassword,
 } = require("../utils/functions");
+const { ConflictRequestError } = require("../core/success.response");
 
 const PRIVATE_KEY_ACCESS_TOKEN = process.env.PRIVATE_KEY_ACCESS_TOKEN;
 const PRIVATE_KEY_REFRESH_TOKEN = process.env.PRIVATE_KEY_REFRESH_TOKEN;
@@ -18,11 +19,7 @@ class AuthService extends ParentService {
   signUp = ({ email, password, full_name }) => {
     return new Promise(async (resolve, reject) => {
       try {
-        const checkEmail = await validateEmail(email);
-
-        if (checkEmail.errors) {
-          return resolve(checkEmail);
-        }
+        await validateEmail(email);
 
         const findEmail = await this.model
           .findOne({
@@ -31,12 +28,7 @@ class AuthService extends ParentService {
           .exec();
 
         if (findEmail) {
-          return resolve({
-            errors: {
-              message: "Email đã tồn tại !",
-            },
-            status: 400,
-          });
+          throw new ConflictRequestError("Email đã tồn tại !");
         }
 
         const hashPassword = await this.model.hashPassword(password);

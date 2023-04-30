@@ -1,6 +1,7 @@
 const { _User } = require("../models/user.model");
 const ParentController = require("./parent.controller");
 const AuthService = require("../services/auth.service");
+const { BadRequestError } = require("../core/error.response");
 
 const refreshTokenCookieOptions = {
   httpOnly: true,
@@ -17,26 +18,19 @@ class AuthController extends ParentController {
   }
 
   signUp = async (req, res, next) => {
-    try {
-      const data = req.body;
+    const data = req.body;
 
-      if (!data.email || !data.password) {
-        return next({
-          status: 400,
-          message: "Thiếu email or password",
-        });
-      }
-
-      const response = await this.service.signUp({
-        email: data.email,
-        password: data.password,
-        ...data,
-      });
-
-      res.status(response.status).json(response);
-    } catch (error) {
-      next(error);
+    if (!data.email || !data.password) {
+      throw new BadRequestError("Thiếu email or password");
     }
+
+    const response = await this.service.signUp({
+      email: data.email,
+      password: data.password,
+      ...data,
+    });
+
+    res.status(response.status).json(response);
   };
 
   signIn = async (req, res, next) => {
@@ -61,6 +55,10 @@ class AuthController extends ParentController {
           response.elements.refreshToken,
           refreshTokenCookieOptions
         );
+
+        req.session.token = {
+          refreshToken: response.elements.refreshToken,
+        };
       }
 
       res.status(response.status).json(response);
@@ -72,6 +70,11 @@ class AuthController extends ParentController {
   signOut = async (req, res, next) => {
     try {
       res.clearCookie("refreshToken");
+      req.session.destroy((error) => {
+        if (error) {
+          console.log("error logout", error);
+        }
+      });
       res.status(200).json({
         errors: null,
         elements: null,

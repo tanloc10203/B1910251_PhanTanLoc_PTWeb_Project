@@ -1,5 +1,6 @@
 const { validate } = require("deep-email-validator");
 const nodemailer = require("nodemailer");
+const { BadRequestError } = require("../core/error.response");
 
 function validateEmail(email) {
   return new Promise(async (resolve, reject) => {
@@ -9,17 +10,12 @@ function validateEmail(email) {
       const { valid, reason, validators } = response;
 
       if (!valid && reason && !validators[reason].valid) {
-        return resolve({
-          errors: {
-            message: "Vui lòng cung cấp một địa chỉ email hợp lệ",
-          },
-          status: 400,
-        });
+        throw new BadRequestError("Vui lòng cung cấp một địa chỉ email hợp lệ");
       }
 
-      resolve({
+      return {
         errors: null,
-      });
+      };
     } catch (error) {
       reject(error);
     }

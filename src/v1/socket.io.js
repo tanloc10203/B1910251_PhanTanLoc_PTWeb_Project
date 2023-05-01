@@ -15,7 +15,7 @@ const initialSocketIo = (app) => {
     },
   });
 
-  io.use(wrap(sessionMiddleware));
+  io.use(wrap(sessionMiddleware(app)));
   io.use(SocketMiddleware.auth);
 
   io.on("connect", (socket) => {

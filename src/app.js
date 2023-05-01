@@ -10,23 +10,27 @@ const cookieParser = require("cookie-parser");
 const {
   OPTION_CORS,
   optionsCompression,
+  storeMongo,
   sessionMiddleware,
 } = require("./v1/utils/options");
 const multer = require("multer");
 const { storage } = require("./v1/utils/functions");
 const { initialSocketIo } = require("./v1/socket.io");
+const session = require("express-session");
 const upload = multer({ storage: storage });
 
 // init db mongo
 require("./v1/databases/init.mongodb");
 
+console.log("app.get =>", app.get("env"));
+
 app.use(express.static(__dirname + "/assets/upload"));
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-// app.use(morgan("dev"));
+app.use(morgan("dev"));
 app.use(cors(OPTION_CORS));
 app.use(express.json());
 app.use(compression(optionsCompression(compression)));
-sessionMiddleware(app);
+app.use(sessionMiddleware(app));
 app.use(cookieParser());
 app.use(
   express.urlencoded({

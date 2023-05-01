@@ -1,5 +1,6 @@
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+const { Express } = require("express");
 
 const OPTION_CORS = {
   origin: process.env.URL_CLIENT,
@@ -29,6 +30,10 @@ const storeMongo = MongoStore.create({
   mongoUrl: process.env.MONGO_URI,
 });
 
+/**
+ *
+ * @param {Express} app
+ */
 const sessionMiddleware = (app) => {
   let options = {
     secret: process.env.COOKIE_SECRET,
@@ -58,7 +63,7 @@ const sessionMiddleware = (app) => {
     };
   }
 
-  app.use(session(options));
+  return session(options);
 };
 
 const wrap = (expressMiddleware) => (socket, next) =>

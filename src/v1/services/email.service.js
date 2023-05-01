@@ -10,12 +10,13 @@ function validateEmail(email) {
       const { valid, reason, validators } = response;
 
       if (!valid && reason && !validators[reason].valid) {
+        console.log("error email:::", response);
         throw new BadRequestError("Vui lòng cung cấp một địa chỉ email hợp lệ");
       }
 
-      return {
+      resolve({
         errors: null,
-      };
+      });
     } catch (error) {
       reject(error);
     }

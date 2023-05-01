@@ -1,5 +1,5 @@
 <script>
-import { computed, defineComponent, ref, watch } from "vue";
+import { computed, defineComponent, inject, ref, watch } from "vue";
 import { useStore } from "vuex";
 
 export default defineComponent({
@@ -22,7 +22,10 @@ export default defineComponent({
       }
     );
 
+    const updateDrawer = inject("updateDrawer");
+
     return {
+      updateDrawer,
       categories,
       open,
     };
@@ -32,7 +35,12 @@ export default defineComponent({
 
 <template>
   <v-navigation-drawer v-model="open" temporary width="350">
-    <v-list-item v-for="category in categories" :key="category._id" link>
+    <v-list-item
+      v-for="category in categories"
+      :key="category._id"
+      link
+      @click="updateDrawer"
+    >
       <router-link
         :to="`/category/${category.slug}`"
         class="d-block text-decoration-none"
@@ -62,6 +70,7 @@ export default defineComponent({
                 v-for="subSubCat in subCat.childrens"
                 :key="subSubCat._id"
                 link
+                @click="updateDrawer"
               >
                 <template v-slot:prepend>
                   <v-icon icon="mdi-plus" size="x-small"></v-icon>

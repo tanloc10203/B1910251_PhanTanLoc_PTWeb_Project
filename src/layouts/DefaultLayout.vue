@@ -1,5 +1,5 @@
 <script>
-import { computed, defineComponent, onMounted, ref, watch } from "vue";
+import { computed, defineComponent, onMounted, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import authApi from "../api/authApi";
@@ -55,9 +55,16 @@ export default defineComponent({
       localStorage.setItem("theme", theme.value);
     }
 
+    function updateDrawer() {
+      drawer.value = false;
+    }
+
+    provide("updateDrawer", updateDrawer);
+
     return {
       onClick,
       handleLogout,
+      updateDrawer,
       accessToken,
       theme,
       drawer,
@@ -90,7 +97,7 @@ export default defineComponent({
       </v-btn>
 
       <v-btn v-if="isHome && accessToken" to="/manager" variant="flat">
-        Quản trị 
+        Quản trị
       </v-btn>
 
       <div v-else-if="!accessToken">
@@ -103,7 +110,11 @@ export default defineComponent({
       </v-btn>
     </v-app-bar>
 
-    <router-view name="sidebar" :drawer="drawer" />
+    <router-view
+      name="sidebar"
+      :drawer="drawer"
+      :update-drawer="updateDrawer"
+    />
 
     <v-main>
       <v-container>

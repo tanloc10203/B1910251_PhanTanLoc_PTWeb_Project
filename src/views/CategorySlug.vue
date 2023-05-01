@@ -26,6 +26,9 @@ export default defineComponent({
     const posts = computed(() => store.state["post"].posts);
     const loading = computed(() => store.state["post"].isLoading);
 
+    const filters = computed(() => store.state["post"].filters);
+    const pagination = computed(() => store.state["post"].pagination);
+
     const getBySlug = async (slug) => {
       try {
         const response = await categoryApi.getBySlug(slug);
@@ -82,11 +85,29 @@ export default defineComponent({
       store.dispatch("post/reset");
     });
 
+    const visibilityChanged = (isVisibilityChanged) => {
+      if (!isVisibilityChanged) return;
+
+      let oldPage = filters.value.page;
+
+      if (oldPage >= pagination.value.totalRows) return;
+
+      store.dispatch("post/changeFilter", {
+        page: ++oldPage,
+      });
+
+      store.dispatch("post/fetchAllPost", {
+        ...filters.value,
+        isHome: true,
+      });
+    };
+
     return {
       slug,
       posts,
       loading,
       categories,
+      visibilityChanged,
     };
   },
 });

@@ -1,5 +1,11 @@
 <script>
-import { computed, defineComponent, ref, watch } from "@vue/runtime-core";
+import {
+  computed,
+  defineComponent,
+  inject,
+  ref,
+  watch,
+} from "@vue/runtime-core";
 import { useStore } from "vuex";
 import { emptyObject } from "../../utils/functions";
 
@@ -23,7 +29,10 @@ export default defineComponent({
       ["mdi-send", "Quản lý bài viết", "/manager/post"],
     ];
 
-    const linkPublic = [["mdi-send", "Quản lý bài viết", "/manager/post"]];
+    const linkPublic = [
+      ["mdi-inbox-arrow-down", "Người dùng", "/manager/dashboard"],
+      ["mdi-send", "Quản lý bài viết", "/manager/post"],
+    ];
 
     const links = computed(() =>
       role.value && role.value.toLowerCase() !== "admin"
@@ -33,6 +42,8 @@ export default defineComponent({
 
     const open = ref(false);
 
+    const updateDrawer = inject("updateDrawer");
+
     watch(
       () => props.drawer,
       (drawer) => {
@@ -40,14 +51,20 @@ export default defineComponent({
       }
     );
 
-    return { links, open };
+    return { links, open, updateDrawer };
   },
 });
 </script>
 
 <template>
   <v-navigation-drawer v-model="open" temporary>
-    <v-list-item v-for="[icon, text, to] in links" :key="icon" link :to="to">
+    <v-list-item
+      v-for="[icon, text, to] in links"
+      :key="icon"
+      link
+      :to="to"
+      @click="updateDrawer"
+    >
       <template v-slot:prepend>
         <v-icon>{{ icon }}</v-icon>
       </template>

@@ -1,8 +1,7 @@
 <script>
-import { computed, defineComponent, onMounted, watch } from "vue";
+import { computed, defineComponent, watch } from "vue";
 import { useStore } from "vuex";
 import Toast from "./components/Toast.vue";
-import socket from "./socket";
 
 export default defineComponent({
   components: {
@@ -14,20 +13,6 @@ export default defineComponent({
     const open = computed(() => store.state["toast"].open);
     const color = computed(() => store.state["toast"].color);
     const duration = computed(() => store.state["toast"].timeout);
-
-    onMounted(() => {
-      if (store.state["auth"].accessToken) {
-        socket.connect();
-
-        socket.on("connect_error", async (err) => {
-          console.log(err.message);
-        });
-
-        socket.on("test", ({ text }) => {
-          console.log("text", text);
-        });
-      }
-    });
 
     watch(
       () => store.state["toast"].open,

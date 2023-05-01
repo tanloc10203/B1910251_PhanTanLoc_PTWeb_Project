@@ -1,14 +1,106 @@
 <script setup>
-import { ref } from "vue";
+import moment from "moment";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { useStore } from "vuex";
+import socket from "../../socket";
 
 const props = defineProps({
   toUser: {
     type: Object,
     required: true,
   },
+  messagesReceive: {
+    type: Array,
+    default: [],
+  },
+});
+const store = useStore();
+const user = computed(() => store.state.auth.user);
+const messages = computed(() => store.state.chat.messages);
+const typing = ref(false);
+const textMessage = ref("");
+const dispatch = store.dispatch;
+
+watch(
+  () => store.state.chat.messages,
+  (_) => {
+    nextTick(() => {
+      scrollToBottom();
+    });
+  }
+);
+
+watch(
+  () => store.state.chat.typing,
+  (value) => {
+    typing.value = value;
+    nextTick(() => {
+      scrollToBottom();
+    });
+  }
+);
+
+onMounted(() => {
+  nextTick(() => {
+    scrollToBottom();
+  });
 });
 
-const messages = ref([]);
+function scrollToBottom() {
+  const container = document.querySelector(".container-message");
+  container.scrollTop = container.scrollHeight;
+}
+
+function onSubmitSendMessage() {
+  if (
+    !textMessage.value ||
+    Object.keys(props.toUser).length === 0 ||
+    Object.keys(user.value).length === 0
+  )
+    return;
+
+  const payload = {
+    sender: user.value._id,
+    receiver: props.toUser._id,
+    message: textMessage.value,
+    createdAt: Date.now(),
+  };
+
+  dispatch("chat/ADD_MESSAGE", payload);
+  socket.emit("message:send", payload);
+  socket.emit("typing", {
+    to: props.toUser._id,
+    typing: false,
+    from: user.value._id,
+  });
+  textMessage.value = "";
+
+  nextTick(() => {
+    scrollToBottom();
+  });
+}
+
+watch(textMessage, (text) => {
+  if (!text) {
+    socket.emit("typing", {
+      to: props.toUser._id,
+      typing: false,
+      from: user.value._id,
+    });
+
+    return;
+  }
+
+  socket.emit("typing", {
+    to: props.toUser._id,
+    typing: true,
+    from: user.value._id,
+  });
+});
+
+function formatDate(date) {
+  return moment(date).format("DD/MM/YYYY, HH:mm:ss");
+}
 </script>
 
 <template>
@@ -28,58 +120,48 @@ const messages = ref([]);
         </div>
       </div>
 
-      <div class="chat-content--main">
-        <div class="message parker">
-          {msg.content} {msg.content} {msg.content} {msg.content} {msg.content}
-          {msg.content}
+      <div class="chat-content--main container-message">
+        <div v-for="(msg, index) in messages" :key="index" class="message-item">
+          <div class="message parker" v-if="msg?.sender === user._id">
+            {{ msg?.message }}
+          </div>
+          <div class="message stark" v-else>{{ msg?.message }}</div>
+          <div class="time-message parker" v-if="msg?.sender === user._id">
+            {{ formatDate(msg?.createdAt) }}
+          </div>
+          <div class="time-message stark" v-else>
+            {{ formatDate(msg?.createdAt) }}
+          </div>
         </div>
-        <div class="message stark">{msg.content}</div>
-        <div class="message parker">{msg.content}</div>
-        <div class="message stark">{msg.content}</div>
 
-        <div class="message parker">{msg.content}</div>
-        <div class="message stark">{msg.content}</div>
-        <div class="message parker">{msg.content}</div>
-        <div class="message stark">{msg.content}</div>
-        <div class="message parker">{msg.content}</div>
-
-        <div class="message stark">{msg.content}</div>
-        <div class="message parker">{msg.content}</div>
-        <div class="message stark">{msg.content}</div>
-
-        <div class="message stark">{msg.content}</div>
-        <div class="message parker">{msg.content}</div>
-        <div class="message stark">{msg.content}</div>
-
-        <div class="message stark">{msg.content}</div>
-        <div class="message parker">{msg.content}</div>
-        <div class="message stark">{msg.content}</div>
-
-        <div class="message stark">
+        <div v-if="typing" class="message stark">
           <div class="typing typing-1"></div>
           <div class="typing typing-2"></div>
           <div class="typing typing-3"></div>
         </div>
       </div>
 
-      <div class="chat-content--input">
-        <div class="form-group chat-content--input-text">
-          <input
-            type="text"
-            placeholder="Type your message here..."
-            class="form-control"
-          />
-        </div>
-
-        <div class="chat-content--input-bottom">
-          <div class="chat-content--input-bottom-icon">
-            <i class="fa-sharp fa-solid fa-link"></i>
-            <i class="fa-sharp fa-solid fa-image"></i>
+      <form @submit.prevent="onSubmitSendMessage">
+        <div class="chat-content--input">
+          <div class="form-group chat-content--input-text">
+            <input
+              type="text"
+              placeholder="Bạn muốn hỏi thăm gì..."
+              class="form-control"
+              v-model="textMessage"
+            />
           </div>
 
-          <button type="submit" class="btn">Reply</button>
+          <div class="chat-content--input-bottom">
+            <div class="chat-content--input-bottom-icon">
+              <i class="fa-sharp fa-solid fa-link"></i>
+              <i class="fa-sharp fa-solid fa-image"></i>
+            </div>
+
+            <button type="submit" class="btn">Hỏi thăm</button>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 </template>
@@ -189,8 +271,11 @@ ul {
 }
 
 /* Chat */
-.chat-content--main {
+.chat-content--main,
+.container-message {
   overflow-y: auto;
+  min-height: 450px;
+  max-height: 450px;
 }
 
 .chat-content--main::-webkit-scrollbar {
@@ -210,6 +295,23 @@ ul {
   max-width: 66%;
   box-shadow: 0 0 2rem rgba(0, 0, 0, 0.075),
     0rem 1rem 1rem -1rem rgba(0, 0, 0, 0.1);
+}
+
+.time-message {
+  box-sizing: border-box;
+  min-height: 2.25rem;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  max-width: 66%;
+}
+
+.time-message.parker {
+  margin: 0 1rem 1rem auto;
+}
+
+.time-message.stark {
+  margin: 0 1rem 1rem 1rem;
 }
 
 .chat-content--main .message.parker {

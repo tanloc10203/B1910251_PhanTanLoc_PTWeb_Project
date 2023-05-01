@@ -30,7 +30,7 @@ const storeMongo = MongoStore.create({
 });
 
 const sessionMiddleware = (app) => {
-  const options = {
+  let options = {
     secret: process.env.COOKIE_SECRET,
     // credentials: true,
     store: storeMongo,

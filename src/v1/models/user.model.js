@@ -38,6 +38,10 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    connected: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     collection: "users",

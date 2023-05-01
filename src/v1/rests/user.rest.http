@@ -4,7 +4,7 @@
 GET {{url}}
 
 ### GET BY ID
-GET {{url}}/63c106215d8d55f11402f5ba
+GET {{url}}/63df9e6ee8a64789ec19f6ef
 
 ### Create user
 POST {{url}}

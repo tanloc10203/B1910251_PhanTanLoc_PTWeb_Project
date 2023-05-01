@@ -21,11 +21,20 @@ const initialSocketIo = (app) => {
   io.on("connect", (socket) => {
     SocketService.initializeUser(socket);
 
-    socket.emit("test", {
-      text: "hello",
-    });
+    socket.on(
+      "message:send",
+      async (payload) => await SocketService.dearMessage(socket, payload)
+    );
 
-    socket.on("disconnecting", (reason) => {});
+    socket.on("message:getByUserId", (payload) =>
+      SocketService.getMessages(socket, payload)
+    );
+
+    socket.on("typing", (payload) =>
+      SocketService.typingMessage(socket, payload)
+    );
+
+    socket.on("disconnecting", () => SocketService.disconnected(socket));
   });
 
   return httpServer;

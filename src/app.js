@@ -26,7 +26,7 @@ app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(cors(OPTION_CORS));
 app.use(express.json());
 app.use(compression(optionsCompression(compression)));
-app.use(sessionMiddleware);
+sessionMiddleware(app);
 app.use(cookieParser());
 app.use(
   express.urlencoded({

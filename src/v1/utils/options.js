@@ -29,20 +29,37 @@ const storeMongo = MongoStore.create({
   mongoUrl: process.env.MONGO_URI,
 });
 
-const sessionMiddleware = session({
-  secret: process.env.COOKIE_SECRET,
-  // credentials: true,
-  store: storeMongo,
-  name: "sid",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === "production" ? "true" : "auto",
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    expires: 1000 * 60 * 60 * 24 * 7,
-  },
-});
+const sessionMiddleware = (app) => {
+  const options = {
+    secret: process.env.COOKIE_SECRET,
+    // credentials: true,
+    store: storeMongo,
+    name: "sid",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 3.154e10,
+    },
+  };
+
+  if (app.get("env") === "production") {
+    app.enable("trust proxy");
+    options = {
+      ...options,
+      proxy: true,
+      cookie: {
+        ...options.cookie,
+        secure: true,
+        sameSite: "none",
+      },
+    };
+  }
+
+  app.use(session(options));
+};
 
 const wrap = (expressMiddleware) => (socket, next) =>
   expressMiddleware(socket.request, {}, next);

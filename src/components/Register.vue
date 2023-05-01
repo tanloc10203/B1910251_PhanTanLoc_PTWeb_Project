@@ -78,6 +78,8 @@ export default defineComponent({
               "Đăng ký thành công vui lòng xác nhận email của bạn.";
             messageAlert.type = "success";
             store.dispatch("toast/startToast", payload);
+
+            loading.value = false;
           }
         }
       } catch (error) {

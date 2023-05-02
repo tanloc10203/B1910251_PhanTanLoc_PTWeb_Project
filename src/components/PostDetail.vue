@@ -43,3 +43,9 @@ export default defineComponent({
     </div>
   </v-content>
 </template>
+
+<style>
+figure img {
+  width: 100%;
+}
+</style>

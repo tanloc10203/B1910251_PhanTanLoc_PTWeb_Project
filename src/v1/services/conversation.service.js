@@ -25,6 +25,7 @@ class ConversationService {
       return conversationInsert._id;
     } catch (error) {
       console.log("error generateConversation: ", error);
+      return -1;
     }
   }
 
@@ -39,6 +40,16 @@ class ConversationService {
         .exec();
     } catch (error) {
       console.log("error getByUserId: ", error);
+      return {};
+    }
+  }
+
+  static async getAllByUserId(userId) {
+    try {
+      return await _Conversation.find({ user_id: userId }).lean().exec();
+    } catch (error) {
+      console.log("error getAllByUserId", error);
+      return [];
     }
   }
 }

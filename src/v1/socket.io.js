@@ -18,20 +18,22 @@ const initialSocketIo = (app) => {
   io.use(wrap(sessionMiddleware(app)));
   io.use(SocketMiddleware.auth);
 
-  io.on("connect", (socket) => {
-    SocketService.initializeUser(socket);
+  io.on("connect", async (socket) => {
+    await SocketService.initializeUser(socket);
 
     socket.on(
       "message:send",
       async (payload) => await SocketService.dearMessage(socket, payload)
     );
 
-    socket.on("message:getByUserId", (payload) =>
-      SocketService.getMessages(socket, payload)
+    socket.on(
+      "message:getByUserId",
+      async (payload) => await SocketService.getMessages(socket, payload)
     );
 
-    socket.on("typing", (payload) =>
-      SocketService.typingMessage(socket, payload)
+    socket.on(
+      "typing",
+      async (payload) => await SocketService.typingMessage(socket, payload)
     );
 
     socket.on("disconnecting", () => SocketService.disconnected(socket));

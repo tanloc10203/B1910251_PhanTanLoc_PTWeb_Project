@@ -9,24 +9,61 @@ class SocketService {
    *
    * @param {Socket} socket
    */
-  static initializeUser = (socket) => {
+  static initializeUser = async (socket) => {
     console.log("user connect: ", socket.user);
-
     socket.join(socket.user._id);
+
     this.userJoins = [...this.userJoins, socket.user];
+
+    const conversations = await ConversationService.getAllByUserId(
+      socket.user._id
+    );
+
+    console.log("conversations", conversations);
+
+    let resultCountNotifications = await Promise.all(
+      conversations.map(async (c) => ({
+        _id: c._id.toString(),
+        participant_id: c.participant_id.toString(),
+        count: await MessageService.countIsNotWatched(c._id),
+      }))
+    );
+
+    resultCountNotifications = resultCountNotifications.reduce(
+      (acc, value) => (acc = { ...acc, [value.participant_id]: value.count }),
+      {}
+    );
+
+    console.log("resultCountNotifications", resultCountNotifications);
+
     socket.broadcast.emit("join", this.userJoins);
+    socket.emit("notification:init", { result: resultCountNotifications });
     socket.emit("joins:connected", this.userJoins);
   };
 
+  /**
+   * @description Get message by userId and participantId
+   * @param {Socket} socket
+   * @param {{ userId: String, participantId: String }} payload
+   * @returns {Promise<void>}
+   */
   static getMessages = async (socket, payload) => {
     const conversation = await ConversationService.getByUserId({ ...payload });
 
     let messages = [];
+    let countNotification = 0;
 
     if (conversation) {
       messages = await MessageService.findByConversationId(conversation._id);
+      await MessageService.updateIsWatched(conversation._id);
+      countNotification = await MessageService.countIsNotWatched(
+        conversation._id
+      );
     }
 
+    socket.emit("notification:count", {
+      [payload.participantId]: countNotification,
+    });
     socket.emit("message:getByUserId", messages);
   };
 
@@ -35,8 +72,23 @@ class SocketService {
    * @param {Socket} socket
    * @param {{ to: String, typing: Boolean, from: string }} payload
    */
-  static typingMessage = (socket, payload) => {
+  static typingMessage = async (socket, payload) => {
     socket.to(payload.to).emit("typing", payload);
+
+    const conversation = await ConversationService.getByUserId({
+      participantId: payload.to,
+      userId: payload.from,
+    });
+
+    if (conversation) {
+      await MessageService.updateIsWatched(conversation._id);
+
+      const countNotification = await MessageService.countIsNotWatched(
+        conversation._id
+      );
+
+      socket.emit("notification:count", { [payload.to]: countNotification });
+    }
   };
 
   /**
@@ -80,6 +132,7 @@ class SocketService {
       receiver: receiver,
       sender: socket.user._id,
       createdAt: payload.createdAt,
+      isWatched: true,
     });
 
     // * receiver
@@ -90,6 +143,19 @@ class SocketService {
       sender: socket.user._id,
       createdAt: payload.createdAt,
     });
+
+    // * notification receiver.
+    const countNotification = await MessageService.countIsNotWatched(
+      conversationReceiver._id
+    );
+
+    socket
+      .to(receiver)
+      .emit("notification:count", { [sender._id]: countNotification });
+
+    socket
+      .to(receiver)
+      .emit("typing", { to: receiver, typing: false, from: sender._id });
 
     socket.to(receiver).emit("message:receive", {
       ...receiverAfter._doc,

@@ -20,6 +20,11 @@ const messageSchema = new mongoose.Schema({
     default: false,
     index: true,
   },
+  is_watched: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -27,6 +32,11 @@ const messageSchema = new mongoose.Schema({
   },
 });
 
-messageSchema.index({ createdAt: true, conversation_id: true, is_undo: true });
+messageSchema.index({
+  createdAt: true,
+  conversation_id: true,
+  is_undo: true,
+  is_watched: true,
+});
 
 module.exports._Message = mongoose.model("Messages", messageSchema);

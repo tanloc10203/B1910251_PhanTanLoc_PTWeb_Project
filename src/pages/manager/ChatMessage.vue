@@ -68,11 +68,6 @@ function onSubmitSendMessage() {
 
   dispatch("chat/ADD_MESSAGE", payload);
   socket.emit("message:send", payload);
-  socket.emit("typing", {
-    to: props.toUser._id,
-    typing: false,
-    from: user.value._id,
-  });
   textMessage.value = "";
 
   nextTick(() => {
@@ -110,7 +105,7 @@ function formatDate(date) {
         <div class="chat-content--header-left">
           <span class="chat-content--header-left-to">Đến: </span>
           <span class="chat-content--header-left-name">
-            {{ `${toUser.email} (${toUser.full_name || "Ẩn danh"})` }}
+            {{ `(${toUser.full_name || "Ẩn danh"})` }}
           </span>
         </div>
 

@@ -1,5 +1,12 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useStore } from "vuex";
 import userApi from "../../api/userApi";
 import ChatMessage from "./ChatMessage.vue";
@@ -22,12 +29,28 @@ const filters = ref({
 const toUser = ref(null);
 const joins = ref([]); // prevJoins
 const messages = ref([]);
+const notifications = ref({});
+const audio = ref(null);
 
 const checkJoin = (currentJoins = []) => {
   joins.value = currentJoins;
 };
 
-onMounted(() => {
+watch(notifications, (notifications) => {
+  if (Object.keys(notifications).length !== 0) {
+    Object.keys(notifications).forEach((key) => {
+      if (notifications[key] > 0) {
+        return;
+      }
+    });
+  }
+});
+
+const mounted = ref(false);
+
+onMounted(async () => {
+  mounted.value = true;
+
   if (store.state["auth"].accessToken) {
     socket.connect();
 
@@ -52,14 +75,36 @@ onMounted(() => {
     });
 
     socket.on("typing", (data) => {
-      if (data.to === currentUser.value._id && data.from === toUser.value._id) {
+      if (
+        data.to === currentUser.value._id &&
+        toUser.value &&
+        data.from === toUser.value._id
+      ) {
         dispatch("chat/SET_TYPING", data.typing);
       }
     });
 
+    socket.on("notification:init", ({ result }) => {
+      console.log("notifycations =>", result);
+      notifications.value = result;
+    });
+
+    socket.on("notification:count", (result) => {
+      console.log("notification:count =>", result);
+      notifications.value = {
+        ...notifications.value,
+        ...result,
+      };
+    });
+
     socket.on("message:receive", (data) => {
+      if (audio.value) {
+        audio.value?.play()?.catch((error) => console.log(error));
+      }
+
       if (
         data.receiver === currentUser.value._id &&
+        toUser.value &&
         data.sender === toUser.value._id
       ) {
         dispatch("chat/ADD_MESSAGE", data);
@@ -106,6 +151,7 @@ onBeforeUnmount(() => {
   socket.disconnect();
   toUser.value = {};
   joins.value = [];
+  mounted.value = false;
 });
 
 function onClickSelected(user) {
@@ -121,10 +167,14 @@ function onChangePage() {}
 </script>
 
 <template>
-  <v-row>
+  <v-row v-if="mounted">
     <v-col>
       <div class="d-flex justify-space-between">
         <h1 class="mb-5">Danh sách người dùng</h1>
+
+        <audio ref="audio">
+          <source src="../../assets/mp3/mess.mp3" type="audio/mpeg" />
+        </audio>
       </div>
 
       <div class="position-relative">
@@ -132,30 +182,17 @@ function onChangePage() {}
           <thead>
             <tr>
               <th class="text-left">Họ và tên</th>
-              <th class="text-left">E-mail</th>
-              <th class="text-left">Quyền</th>
               <th class="text-left">Trạng thái</th>
+              <th class="text-left">Thông báo tin nhắn</th>
               <th class="text-left">Chức năng</th>
             </tr>
           </thead>
           <tbody v-if="users.length">
             <tr v-for="user in users" :key="user._id">
               <td>
-                <p class="text-truncate">
-                  {{ user.full_name || "Ẩn danh" }}
-                </p>
-              </td>
-
-              <td>
-                <p class="text-truncate">
-                  {{ user.email }}
-                </p>
-              </td>
-
-              <td>
-                <p class="text-truncate">
-                  {{ user.role }}
-                </p>
+                <!-- <p class="text-truncate"> -->
+                {{ user.full_name || "Ẩn danh" }}
+                <!-- </p> -->
               </td>
 
               <td>
@@ -171,8 +208,19 @@ function onChangePage() {}
               </td>
 
               <td>
+                <v-chip
+                  v-if="+notifications[user._id] > 0"
+                  class="ma-2"
+                  color="success"
+                >
+                  {{ notifications[user._id] || 0 }}
+                </v-chip>
+              </td>
+
+              <td>
                 <v-btn
                   v-if="currentUser._id !== user._id"
+                  small
                   @click="onClickSelected(user)"
                   class="mr-1"
                 >

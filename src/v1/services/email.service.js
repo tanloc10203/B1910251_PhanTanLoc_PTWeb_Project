@@ -2,6 +2,13 @@ const { validate } = require("deep-email-validator");
 const nodemailer = require("nodemailer");
 const { BadRequestError } = require("../core/error.response");
 
+const validator = require("validator");
+const kickbox = require("kickbox")
+  .client(
+    "live_73006b9ba90fc062b1b180e198f122c04ec9afe164c41a378231aa411f52432f"
+  )
+  .kickbox();
+
 function validateEmail(email) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -19,6 +26,16 @@ function validateEmail(email) {
       });
     } catch (error) {
       reject(error);
+    }
+  });
+}
+
+async function checkEmail(email) {
+  kickbox.verify(email, function (err, response) {
+    if (response.body.result === "deliverable") {
+      return true;
+    } else {
+      throw new BadRequestError("Vui lòng cung cấp một địa chỉ email hợp lệ");
     }
   });
 }
@@ -65,5 +82,6 @@ async function sendEmailVerifyAccount(dataSend, options) {
 
 module.exports = {
   validateEmail,
+  checkEmail,
   sendEmailVerifyAccount,
 };

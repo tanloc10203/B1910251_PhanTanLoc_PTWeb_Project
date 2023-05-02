@@ -1,5 +1,9 @@
 const ParentService = require("./parent.service");
-const { validateEmail, sendEmailVerifyAccount } = require("./email.service");
+const {
+  validateEmail,
+  sendEmailVerifyAccount,
+  checkEmail,
+} = require("./email.service");
 const { _Token } = require("../models/token.model");
 const { URI_SERVER } = process.env;
 const { jwtService } = require("./jwt.service");
@@ -19,7 +23,7 @@ class AuthService extends ParentService {
   signUp = ({ email, password, full_name }) => {
     return new Promise(async (resolve, reject) => {
       try {
-        await validateEmail(email);
+        await checkEmail(email);
 
         const findEmail = await this.model
           .findOne({

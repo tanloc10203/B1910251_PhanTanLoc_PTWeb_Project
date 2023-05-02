@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 
 module.exports.jwtService = {
   sign: (object, privateKey, options) => {
+    console.log("check => ", { object, privateKey, options });
     return jwt.sign(object, privateKey, { ...(options && options) });
   },
 

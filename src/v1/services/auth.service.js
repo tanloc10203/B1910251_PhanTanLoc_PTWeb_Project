@@ -144,6 +144,7 @@ class AuthService extends ParentService {
           },
         });
       } catch (error) {
+        console.log("error login:::", error);
         reject(error);
       }
     });

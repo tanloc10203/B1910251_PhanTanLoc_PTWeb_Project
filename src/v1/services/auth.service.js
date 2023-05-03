@@ -1,11 +1,6 @@
 const ParentService = require("./parent.service");
-const {
-  validateEmail,
-  sendEmailVerifyAccount,
-  checkEmail,
-} = require("./email.service");
+const { sendEmailVerifyAccount, checkEmail } = require("./email.service");
 const { _Token } = require("../models/token.model");
-const { URI_SERVER } = process.env;
 const { jwtService } = require("./jwt.service");
 const TokenService = require("./token.service");
 const {

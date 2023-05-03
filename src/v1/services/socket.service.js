@@ -19,8 +19,6 @@ class SocketService {
       socket.user._id
     );
 
-    console.log("conversations", conversations);
-
     let resultCountNotifications = await Promise.all(
       conversations.map(async (c) => ({
         _id: c._id.toString(),
@@ -33,8 +31,6 @@ class SocketService {
       (acc, value) => (acc = { ...acc, [value.participant_id]: value.count }),
       {}
     );
-
-    console.log("resultCountNotifications", resultCountNotifications);
 
     socket.broadcast.emit("join", this.userJoins);
     socket.emit("notification:init", { result: resultCountNotifications });

@@ -1,6 +1,5 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-
 const { wrap, sessionMiddleware } = require("./utils/options");
 const SocketMiddleware = require("./middlewares/socket.middleware");
 const SocketService = require("./services/socket.service");

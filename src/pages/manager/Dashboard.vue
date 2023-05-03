@@ -36,16 +36,6 @@ const checkJoin = (currentJoins = []) => {
   joins.value = currentJoins;
 };
 
-watch(notifications, (notifications) => {
-  if (Object.keys(notifications).length !== 0) {
-    Object.keys(notifications).forEach((key) => {
-      if (notifications[key] > 0) {
-        return;
-      }
-    });
-  }
-});
-
 const mounted = ref(false);
 
 onMounted(async () => {
@@ -190,9 +180,9 @@ function onChangePage() {}
           <tbody v-if="users.length">
             <tr v-for="user in users" :key="user._id">
               <td>
-                <!-- <p class="text-truncate"> -->
-                {{ user.full_name || "Ẩn danh" }}
-                <!-- </p> -->
+                <p class="text-truncate">
+                  {{ user.full_name || "Ẩn danh" }}
+                </p>
               </td>
 
               <td>

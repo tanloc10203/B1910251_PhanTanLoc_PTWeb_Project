@@ -62,13 +62,20 @@ export default defineComponent({
 
 <template>
   <v-row>
-    <v-col cols="12" sm="9">
+    <v-col cols="12" sm="8">
+      <v-progress-linear
+        v-if="loading"
+        color="lime"
+        indeterminate
+        reverse
+      ></v-progress-linear>
+
       <v-sheet rounded="lg" min-height="268">
         <post-detail v-if="!loading" :post="post" />
       </v-sheet>
     </v-col>
 
-    <v-col cols="12" sm="3">
+    <v-col cols="12" sm="4">
       <v-sheet rounded="lg" min-height="268">
         <card-home />
       </v-sheet>
